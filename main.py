@@ -1,5 +1,6 @@
 from fastapi import Body, HTTPException, FastAPI
 import requests
+import json
 
 app = FastAPI()
 
@@ -13,10 +14,24 @@ async def proxy_handle(payload: dict = Body(...)):
 
     method = payload.get("method")
     url = payload.get("url")
-    data = payload.get("data") if payload.get("data") else {}
-    headers = payload.get("headers") if payload.get("headers") else {}
-    params = payload.get("params") if payload.get("params") else {}
+    data = json.dumps(payload.get("data"))
+    headers = payload.get("headers")
+    params = payload.get("params")
 
-    response = requests.request(method, url, headers, data, params)
+    print("method: ", method)
+    print("url: ", url)
+    print("params: ", params)
+    print("data: ", data)
+    print("headers: ", headers)
 
-    return response.json()
+    try:
+        response = requests.request(method=method, url=url, headers=headers, data=data, params=params)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise HTTPException(status_code=400, detail="Bad Request")
+
+    except Exception as e:
+        print(e)
+        return {}
