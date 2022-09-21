@@ -1,9 +1,9 @@
-from fastapi import Body, HTTPException, FastAPI
-import requests
 import json
 
-app = FastAPI()
+import requests
+from fastapi import Body, HTTPException, FastAPI
 
+app = FastAPI()
 
 @app.post("/")
 async def proxy_handle(payload: dict = Body(...)):
@@ -18,14 +18,9 @@ async def proxy_handle(payload: dict = Body(...)):
     headers = payload.get("headers")
     params = payload.get("params")
 
-    print("method: ", method)
-    print("url: ", url)
-    print("params: ", params)
-    print("data: ", data)
-    print("headers: ", headers)
-
     try:
         response = requests.request(method=method, url=url, headers=headers, data=data, params=params)
+        print("Code: ", response.status_code)
 
         if response.status_code == 200:
             return response.json()
@@ -33,5 +28,11 @@ async def proxy_handle(payload: dict = Body(...)):
             raise HTTPException(status_code=400, detail="Bad Request")
 
     except Exception as e:
+        print("method: ", method)
+        print("url: ", url)
+        print("params: ", params)
+        print("data: ", data)
+        print("headers: ", headers)
+
         print(e)
         return {}
