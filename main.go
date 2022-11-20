@@ -2,10 +2,9 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-resty/resty/v2"
+	"net/http"
 )
 
 type ProxyQuery struct {
@@ -24,6 +23,8 @@ func proxyHandle(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, "")
 	}
 
+	var result interface{}
+
 	client := resty.New().EnableTrace()
 
 	if body.Headers != nil {
@@ -34,20 +35,18 @@ func proxyHandle(c *gin.Context) {
 		client.SetQueryParams(body.Params)
 	}
 
-	var result interface{}
-
-	switch body.Method {
-	case "POST":
+	if body.Method == "POST" {
 		_, err = client.R().
 			SetBody(body.Data).
 			SetResult(&result).
+			SetHeaders(body.Headers).
+			SetQueryParams(body.Params).
 			Post(body.Url)
-		break
-	case "GET":
+	} else {
 		_, err = client.R().
 			SetResult(&result).
+			SetQueryParams(body.Params).
 			Get(body.Url)
-		break
 	}
 
 	if err != nil {
